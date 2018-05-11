@@ -9,6 +9,8 @@ import dataManage.Tupla;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -652,5 +654,17 @@ public class Course {
     public boolean equals(Object c) {
         return this.idCourse == ((Course) c).idCourse;
     }
-
+    
+    public Teacher getTeacher(List<Teacher> aTeacher,int idCourse,int section){
+        int idCod = (idCourse*100) + section;
+        for (Teacher aTeacherElem : aTeacher) {
+            for(int i=0; i < aTeacherElem.getHuecos().length ;i++){
+                for(int j=0; j < aTeacherElem.getHuecos()[0].length ;j++){
+                    if(aTeacherElem.getHuecos()[i][j] == idCod) 
+                        return aTeacherElem;
+                }
+            }
+        }
+        return null;
+    }
 }
