@@ -950,7 +950,7 @@ public class Consultas {
         try {
             rs = DBConnect.renweb.executeQuery(consulta);
             while (rs.next()) {
-                ret = rs.getString("lastname") + " ";
+                ret = rs.getString("lastname") + ", ";
                 ret += rs.getString("firstname");
             }
         } catch (SQLException ex) {
@@ -1007,6 +1007,14 @@ public class Consultas {
                 c.setRooms(rs.getString("rooms"));
                 c.setExcludeCols("excludecols");
                 c.setExcludeRows("ecluderows");
+                /**/
+                c.setBalanceTeachers(rs.getBoolean("balanceteacher"));
+                
+               // String sAux = rs.getString("preferedblocks");
+                //sAux = sAux.substring(1, sAux.length()-1);
+                c.setPreferedBlocks(rs.getString("preferedblocks"));
+                /**/
+                
                 teachers = rs.getString("teachers");
                 teachers = teachers.replace("[", "");
                 teachers = teachers.replace("]", "");

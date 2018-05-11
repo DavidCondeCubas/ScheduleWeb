@@ -42,7 +42,8 @@ public class Course {
     private int maxChildPerSection;
     private ArrayList<Integer> rooms;
     private ArrayList<Integer> trestricctions;
-
+    private String preferedBlockString;
+    
     public Course(int idCourse) {
         this.idCourse = idCourse;
         this.rank = Integer.MAX_VALUE;
@@ -60,6 +61,7 @@ public class Course {
         rooms = new ArrayList();
        
         balanceTeachers = false;
+        preferedBlockString = "";
     }
 
     public void addRoom(int id) {
@@ -533,6 +535,7 @@ public class Course {
     }
 
     public void setPreferedBlocks(String s) {
+        this.preferedBlockString = s;
         if (s != null && s != "") {
             this.preferedBlocks = new ArrayList();
             //falta terminar
@@ -633,7 +636,8 @@ public class Course {
                         + this.minGapDays + "," + this.rank + "," + this.GR + ",'"
                         + excludeBlocksToString() + "'," + this.maxBlocksPerDay + ",'"
                         + this.rooms.toString() + "','" + this.excludeCols.toString()
-                        + "','" + this.excludeRows.toString() + "','" + this.trestricctions.toString() + "')";
+                        + "','" + this.excludeRows.toString() + "','" + this.trestricctions.toString()
+                        + "','" + this.balanceTeachers + "','" + this.preferedBlockString + "')";
                 DBConnect.own.executeUpdate(consulta);
             } else {
                 //to do: UPDATE

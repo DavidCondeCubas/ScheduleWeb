@@ -48,6 +48,7 @@ public class ScheduleController {
      * to do:
      * -Teneis que revisar si funciona todo correctamente y si no le faltan datos
      *  a la DB.
+     * falta comprobar el funcionamiento
      * @param hsr
      * @param hsr1
      * @return 
