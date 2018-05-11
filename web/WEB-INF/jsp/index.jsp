@@ -136,10 +136,10 @@
                         for (Course t : courses) {
                             out.println("<h3>" + cs.nameCourse(t.getIdCourse()) + "</h3>");
                             out.println("<table id='table_id' class='table'>");
-                            
+                            out.println("<tr>");
                             for (int j = 1; j <= t.getSections(); j++) {
                                 String studentNames = "";
-                                out.println("<tr>");
+                                
                                 out.println("<td>Section " + j + ":</td>");
                                 out.println("<td>");
                                 for (int k = 0; k < t.getStudentsAsignados().size(); k++) {   
@@ -147,15 +147,16 @@
                                     {
                                        // studentNames +=  lista2.get(t.getStudentsAsignados().get(k)).getNumSectionByCourse(t.getIdCourse());
                                         if(!studentNames.contains(lista2.get(t.getStudentsAsignados().get(k)).getName()))
-                                            studentNames += " ," + lista2.get(t.getStudentsAsignados().get(k)).getName();
+                                            studentNames += "<br>" + lista2.get(t.getStudentsAsignados().get(k)).getName();
                                     }
                                     
                                 }
                                 
-                                out.println(studentNames + ".");
+//                                out.println(studentNames + ".");
                                 out.println("</td>");
-                                out.println("</tr>");
+                                
                             }
+                            out.println("</tr>");
                             out.println(headCols);
                             swapcolor = true;
                             for (int i = 0; i < TAMY; i++) {
