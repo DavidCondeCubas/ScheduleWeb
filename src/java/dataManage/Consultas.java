@@ -69,6 +69,7 @@ public class Consultas {
             String yearid, String tempid) {
         String consulta = "select * from ClassGroups where yearid =" + yearid + " and templateid=" + tempid;
         ArrayList<Integer> groups = new ArrayList();
+
         HashMap<Integer, ArrayList<Integer>> classes = new HashMap();
         HashMap<Integer, ArrayList<Integer>> courses = new HashMap();
         try {
@@ -77,15 +78,41 @@ public class Consultas {
                 groups.add(rs.getInt("GroupID"));
                 st.add(new Student(rs.getInt("GroupID"), "group" + rs.getInt("GroupID"), "group"));
             }
+
+            HashMap<Integer, Integer> classesData = new HashMap();
+            HashMap<Integer, Integer> coursesData = new HashMap();
+
+            consulta = "select * from ClassGroupClasses";
+            rs = DBConnect.renweb.executeQuery(consulta);
+            while (rs.next()) {
+                classesData.put(rs.getInt("GroupID"), rs.getInt("classid"));
+            }
+
+            consulta = "select * from ClassGroupClasses";
+            rs = DBConnect.renweb.executeQuery(consulta);
+            while (rs.next()) {
+                classesData.put(rs.getInt("GroupID"), rs.getInt("classid"));
+            }
+
+            consulta = "select * from classes";
+            rs = DBConnect.renweb.executeQuery(consulta);
+            while (rs.next()) {
+                coursesData.put(rs.getInt("classid"), rs.getInt("courseid"));
+            }
+
             for (Integer g : groups) {
                 classes.put(g, new ArrayList());
-                consulta = "select * from ClassGroupClasses where GroupID=" + g;
+                /*consulta = "select * from ClassGroupClasses where GroupID=" + g;
                 rs = DBConnect.renweb.executeQuery(consulta);
                 while (rs.next()) {
                     classes.get(g).add(rs.getInt("classid"));
+                }*/
+                if (classesData.containsKey(rs.getInt("classid"))) {
+                    classes.get(g).add(classesData.get(g));
                 }
+
                 for (Integer c : classes.get(g)) {
-                    consulta = "select * from classes where classid=" + c;
+                    /*  consulta = "select * from classes where classid=" + c;
                     rs = DBConnect.renweb.executeQuery(consulta);
                     while (rs.next()) {
                         if (!courses.containsKey(rs.getInt("courseid"))) {
@@ -93,7 +120,12 @@ public class Consultas {
                             listaCourses.add(rs.getInt("courseid"));
                         }
                         courses.get(rs.getInt("courseid")).add(g);
+                    }*/ 
+                    if (!courses.containsKey(coursesData.get(c))){
+                        courses.put(coursesData.get(c), new ArrayList());
+                        listaCourses.add(coursesData.get(c));
                     }
+                    courses.get(coursesData.get(c)).add(g);
                 }
             }
 
@@ -397,11 +429,11 @@ public class Consultas {
                         excludes += rs.getString(1);
                     }
                 }
-                
+
                 ret.get(i).setExcludeBlocks(excludes);
-                
+
                 //**David solo prueba**//         
-                String prefered ="";
+                String prefered = "";
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
@@ -416,12 +448,11 @@ public class Consultas {
                 rs = DBConnect.renweb.executeQuery(consulta);
                 while (rs.next()) {
                     prefered += rs.getString(1);
-                }    
-                
+                }
+
                 ret.get(i).setPreferedBlocks(prefered);
-                
-                
-                 //**David solo prueba**//         
+
+                //**David solo prueba**//         
                 boolean balanceTeachers = false;
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
@@ -437,13 +468,11 @@ public class Consultas {
                 rs = DBConnect.renweb.executeQuery(consulta);
                 while (rs.next()) {
                     balanceTeachers = rs.getBoolean(1);
-                }    
-                
+                }
+
                 ret.get(i).setBalanceTeachers(balanceTeachers);
-                                          
+
                 ///***///
-              
-                
                 consulta = "select MaxSize from courses where courseid="
                         + ret.get(i).getIdCourse();
                 rs = DBConnect.renweb.executeQuery(consulta);
@@ -502,15 +531,15 @@ public class Consultas {
             }
             caux.setExcludeBlocks(excludes); //quita los bloques excluidos
             //ret = caux.opciones().size(); 
-           
+
             ret = 33; //solo prueba
-            
+
         } catch (SQLException ex) {
             Logger.getLogger(Consultas.class.getName()).log(Level.SEVERE, null, ex);
         }
         return ret;
     }
-    
+
     // * @author David
     private ArrayList<ArrayList<Boolean>> totalBlocksStart() {
 
@@ -537,13 +566,13 @@ public class Consultas {
                 }
             }
             caux.setExcludeBlocks(excludes); //quita los bloques excluidos 
-            
+
         } catch (SQLException ex) {
             Logger.getLogger(Consultas.class.getName()).log(Level.SEVERE, null, ex);
         }
         return caux.opcionesStart();
     }
-    
+
     private Teacher teacherDefault() {
         Teacher ret = new Teacher();
         String consulta;
@@ -1009,12 +1038,12 @@ public class Consultas {
                 c.setExcludeRows("ecluderows");
                 /**/
                 c.setBalanceTeachers(rs.getBoolean("balanceteacher"));
-                
-               // String sAux = rs.getString("preferedblocks");
+
+                // String sAux = rs.getString("preferedblocks");
                 //sAux = sAux.substring(1, sAux.length()-1);
                 c.setPreferedBlocks(rs.getString("preferedblocks"));
                 /**/
-                
+
                 teachers = rs.getString("teachers");
                 teachers = teachers.replace("[", "");
                 teachers = teachers.replace("]", "");
@@ -1109,7 +1138,6 @@ public class Consultas {
     --GETTERS AND SETTERS--
     -----------------------
      */
-
     public ArrayList<ArrayList<Boolean>> getTotalBlocksStart() {
         return totalBlocksStart;
     }
@@ -1119,8 +1147,9 @@ public class Consultas {
     }
 
     void fillHashCourses(ArrayList<Course> courses) {
-        for (int i = 0; i < courses.size(); i++) 
-                courseName.put(courses.get(i).getIdCourse(), fetchNameCourse(courses.get(i).getIdCourse())); 
+        for (int i = 0; i < courses.size(); i++) {
+            courseName.put(courses.get(i).getIdCourse(), fetchNameCourse(courses.get(i).getIdCourse()));
+        }
     }
 
     public int getTotalBlocks() {
@@ -1130,5 +1159,5 @@ public class Consultas {
     public void setTotalBlocks(int totalBlocks) {
         this.totalBlocks = totalBlocks;
     }
-    
+
 }

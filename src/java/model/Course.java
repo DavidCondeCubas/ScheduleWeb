@@ -617,12 +617,13 @@ public class Course {
         String consulta = "select * from courses where id=" + this.idCourse;
         boolean actualizar = false;
         try {
+             int maxsec = 0, mingapblocks = 0;
             ResultSet rs = DBConnect.own.executeQuery(consulta);
             while (rs.next()) {
                 actualizar = true;
             }
             if (!actualizar) {
-                int maxsec = 0, mingapblocks = 0;
+               
                 try {
                     maxsec = Integer.parseInt(this.maxSections);
                 } catch (Exception e) {
@@ -641,8 +642,15 @@ public class Course {
                         + "','" + this.excludeRows.toString() + "','" + this.trestricctions.toString()
                         + "','" + this.balanceTeachers + "','" + this.preferedBlockString + "')";
                 DBConnect.own.executeUpdate(consulta);
-            } else {
-                //to do: UPDATE
+            } else {// to do
+            /*   consulta = "UPDATE courses SET blocksperweek= "+this.blocksWeek+" ,maxsections= "+maxsec+" ,mingapblocks= "
+                        +mingapblocks+ " ,mingapdays= "+this.minGapDays+ " ,rank= "+this.rank+" ,gender= "+this.GR
+                        +" ,excludeblocks= "+excludeBlocksToString()+" ,maxblocksperday= "+this.maxBlocksPerDay
+                        +" ,rooms= "+this.rooms.toString()+" ,excludecols="+this.excludeCols.toString()
+                        +" ,excluderows="+this.excludeRows.toString()+" ,teachers="+ this.trestricctions.toString()
+                        +" ,balanceteacher="+this.balanceTeachers + " , preferedblocks="+ this.preferedBlockString + "where ";
+                */
+                
             }
         } catch (SQLException ex) {
             Logger.getLogger(Course.class.getName()).log(Level.SEVERE, null, ex);

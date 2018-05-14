@@ -291,11 +291,13 @@ public class Algoritmo {
         while (i < stids.size()) { // recorrido a los bloques disponibles
             //ordenar por prioridad los teachers
             ArrayList<Teacher> teachersOrderByPriority = new ArrayList<>();
-            
+            teachersOrderByPriority = teachers;
             if(c.isBalanceTeachers()){
                 teachersOrderByPriority = sortTeacherByPriorty(teachers,c.getTrestricctions(),c.getMinSections());
                //teachers = teachersOrderByPriority;
             }
+            // aqui meter un else que no los ordene pero si inserte elementos en teachersorderbypriority
+            
             for (Teacher t : teachersOrderByPriority) { // recorrido a los teachers  totales
                 Room compatibleRoom = null;
                 //compruebo que el profesor puede impartir esta clase
@@ -303,7 +305,7 @@ public class Algoritmo {
                         && t.asignaturaCursable(c.getIdCourse()) // comprueba que el profesor puede iniciar una nueva seccion
                         && t.patronCompatible(sec.get(stids.get(i).x))
                         && c.getSections() <= c.getMinSections()) {*/
-                if (t.asignaturaCursable(c.getIdCourse()) // comprueba que el profesor puede iniciar una nueva seccion
+                if (c.getTrestricctions().contains(t.getIdTeacher()) && t.asignaturaCursable(c.getIdCourse()) // comprueba que el profesor puede iniciar una nueva seccion
                         && t.patronCompatible(sec.get(stids.get(i).x))
                         && c.getSections() <= c.getMinSections()) {
                     //si el schedule por rooms esta activado comprueba si las rooms disponibles 
