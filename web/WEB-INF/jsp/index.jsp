@@ -9,6 +9,9 @@
 <%@page import="java.util.ArrayList"%>
 <%@page import="java.util.List"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="spring" uri="http://www.springframework.org/tags"%>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
     "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -19,8 +22,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Menu</title>
         <style>
-            .tcolores{
-                background-color: #8080804f;
+            tr.tcolores{
+                background-color: lightblue !important;
             }
             #table_id{
                 table-layout: fixed;
@@ -31,7 +34,32 @@
             .espacioLibre{
                 background-color: green;
             }
-
+            .course
+            {
+                page-break-inside: avoid !important;
+            }
+            .students
+            {
+                border-bottom: 1px black solid;
+            }
+            .horario
+            {
+                height: 35px;
+            }
+            @media print
+            {
+                .noPrint
+                {
+                    display: none;
+                }
+                tr.tcolores{
+                    background-color: lightblue !important;
+                }
+                html, body, table
+                {
+                    font-size: 9pt;
+                }
+            }
         </style>
         <script>
             $(document).ready(function () {
@@ -109,12 +137,12 @@
             double totalnoenrolled = 0;
             String headCols = "<tr><th>Period</th>";
             for (String s : headCol) {
-                headCols += "<th>" + s;
+                headCols += "<th class='text-center'>" + s;
                 headCols += "</th>";
             }
             headCols += "</tr>";
         %>
-        <div class="col-xs-12 text-center" id="myTab">
+        <div class="col-xs-12 text-center noPrint" id="myTab">
             <ul class="nav nav-tabs">
                 <li class="active"><a id="Courses" data-toggle="tab" href="#courses" role="tab" >Courses</a></li>
                 <li><a id="Teachers" data-toggle="tab" href="#teachers" role="tab">Teachers</a></li>
@@ -126,17 +154,19 @@
         <div class="tab-content">
 
             <div role="tabpanel" class="col-xs-12 tab-pane in active" id="courses">
-                <legend id="showCourses">
+                <legend id="showCourses" class="noPrint">
                     Schedule
                     <span class="col-xs-12 text-right glyphicon glyphicon-triangle-bottom">
                     </span>
                 </legend>
                 <div class="form-group collapse" id="Coursestable">
-                    <%
+                    
+                        <%
                         for (Course t : courses) {
+                            out.println("<div class='col-xs-12 course'>"); 
                             out.println("<h3>" + cs.nameCourse(t.getIdCourse()) + "</h3>");
-                            out.println("<table id='table_id' class='table'>");
-                            out.println("<tr>");
+                            out.println("<table id='table_id' width='100%' border='0' class=''>");
+                            out.println("<tr class='students'>");
                             for (int j = 1; j < t.getSections(); j++) {
                                 String studentNames = "";
                                 
@@ -168,10 +198,10 @@
                             swapcolor = true;
                             for (int i = 0; i < TAMY; i++) {
                                 if (swapcolor) {
-                                    out.println("<tr class='tcolores'>");
+                                    out.println("<tr class='tcolores horario'>");
                                     swapcolor = false;
                                 } else {
-                                    out.println("<tr>");
+                                    out.println("<tr class='horario'>");
                                     swapcolor = true;
                                 }
                                 if (i < headRow.size()) {
@@ -181,7 +211,7 @@
                                 }
                                 for (int j = 0; j < TAMX; j++) {
                                     if (!t.getHuecos()[j][i].equals("0")) {
-                                        out.println("<td> section " + t.getHuecos()[j][i] + "</td>");
+                                        out.println("<td class='text-center'> section " + t.getHuecos()[j][i] + "</td>");
                                     } else {
                                         out.println("<td> </td>");
                                     }
@@ -189,10 +219,12 @@
                                 out.println("</tr>");
                             }
                             out.println("</table>");
+                            out.println("</div>");
                         }
                     %>
+                    
                 </div>
-                <legend id="showCoursesenrol">
+                    <legend id="showCoursesenrol" class="noPrint">
                     Missing Enrolled
                     <span class="col-xs-12 text-right glyphicon glyphicon-triangle-bottom">
                     </span>

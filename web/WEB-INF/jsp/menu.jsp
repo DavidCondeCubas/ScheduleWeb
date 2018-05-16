@@ -57,38 +57,47 @@
         <div class="col-xs-12">
             <form:form action="menu/create.htm" method="POST">
                 <div class="col-xs-3">
-                    <h3>Select Year</h3>
-                    <select id="selectyear" name="yearid" onchange="templates()">
+                    <fieldset>
+                    <legend>Select Year</legend>
+                    <select class="form-control" id="selectyear" name="yearid" onchange="templates()">
                         <option></option>
                         <c:forEach var="year" items="${years}">
                             <option value="${year.x}">${year.y}</option>
                         </c:forEach>
                     </select>
+                    </fieldset>
                 </div>
                 <div class="col-xs-3">
-                    <h3>Select Template</h3>
-                    <select name="templateInfo" id="selecttemplate">
+                    <fieldset>
+                    <legend>Select Template</legend>
+                    <select class="form-control" name="templateInfo" id="selecttemplate">
                     </select>
+                    </fieldset>
                 </div>
                 <div class="col-xs-3">
-                    <h3>Select rooms schedule mode</h3>
-                    <select id="roomsmode" name="rooms" onchange="hideroomsgroup()">
+                    <fieldset>
+                    <legend>schedule mode</legend>
+                    <select class="form-control" id="roomsmode" name="rooms" onchange="hideroomsgroup()">
                         <option value="0">disabled</option>
                         <option value="1">only courses with room restrictions</option>
                         <option value="2">only default school user defined</option>
                         <option value="3">both (courses and default)</option>
                     </select>
-                    <select id="grouprooms" name="groupofrooms">
+                    <legend>Select rooms</legend>
+                    <select class="form-control" id="grouprooms" name="groupofrooms">
                         <option value="rooms01">rooms 01</option>
                         <option value="rooms02">rooms 02</option>
                         <option value="rooms03">rooms 03</option>
                         <option value="rooms04">rooms 04</option>
                     </select>
+                    </fieldset>
                 </div>
 
                 <div class="col-xs-3">
-                    <h3>Create Schedule</h3>
-                    <input class="btn btn-primary btn-lg" type="submit" name="Submit" value="Create">
+                    <fieldset>
+                    <legend>Create Schedule</legend>
+                    <input class="btn btn-success col-xs-12" type="submit" name="Submit" value="Create">
+                    </fieldset>
                 </div>
             </form:form>
         </div>
