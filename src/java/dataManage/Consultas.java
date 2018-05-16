@@ -29,6 +29,13 @@ public class Consultas {
     private Teacher tdefault;
     private Student stDefault;
     private HashMap<Integer, String> courseName;
+    //*****////
+    private HashMap<Integer, String> namePersons;
+    private HashMap<Integer, String> nameCourses;
+
+    /**
+     * 
+     *////
     private ArrayList<ArrayList<Boolean>> totalBlocksStart;
     private int totalBlocks;
 
@@ -41,6 +48,36 @@ public class Consultas {
         courseName = new HashMap<>();
         totalBlocksStart = this.totalBlocksStart();
         totalBlocks = this.totalBlocks();
+        cargarNames();
+    }
+
+    private void cargarNames() {
+        this.namePersons = new HashMap<>();
+        this.nameCourses = new HashMap<>();
+        
+        String consulta = "select * from person";
+        String ret = "";
+        ResultSet rs;
+        try {
+            rs = DBConnect.renweb.executeQuery(consulta);
+            while (rs.next()) {
+                ret = rs.getString("lastname") + ", ";
+                ret += rs.getString("firstname");
+                this.namePersons.put(rs.getInt("personid"), ret);
+            }
+            
+            consulta = "select * from courses";
+            ResultSet rs2 = DBConnect.renweb.executeQuery(consulta);
+            
+            while (rs2.next()) {
+                int idCourse = rs2.getInt("CourseID");
+                String title= rs2.getString("Title");
+                this.nameCourses.put(idCourse,title);
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(Consultas.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /*
@@ -88,12 +125,6 @@ public class Consultas {
                 classesData.put(rs.getInt("GroupID"), rs.getInt("classid"));
             }
 
-            consulta = "select * from ClassGroupClasses";
-            rs = DBConnect.renweb.executeQuery(consulta);
-            while (rs.next()) {
-                classesData.put(rs.getInt("GroupID"), rs.getInt("classid"));
-            }
-
             consulta = "select * from classes";
             rs = DBConnect.renweb.executeQuery(consulta);
             while (rs.next()) {
@@ -120,8 +151,8 @@ public class Consultas {
                             listaCourses.add(rs.getInt("courseid"));
                         }
                         courses.get(rs.getInt("courseid")).add(g);
-                    }*/ 
-                    if (!courses.containsKey(coursesData.get(c))){
+                    }*/
+                    if (!courses.containsKey(coursesData.get(c))) {
                         courses.put(coursesData.get(c), new ArrayList());
                         listaCourses.add(coursesData.get(c));
                     }
@@ -235,7 +266,7 @@ public class Consultas {
                     if (rs.getInt(1) == 1) {
                         Course r = new Course(ids[i]);
                         ret.add(r);
-                        courseName.put(ids[i], fetchNameCourse(ids[i]));
+                        courseName.put(ids[i], this.nameCourses.get(ids[i]));
                     }
                 }
             }
@@ -715,7 +746,7 @@ public class Consultas {
                 Logger.getLogger(Consultas.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        ret.setName(fetchName(id));
+        ret.setName(this.namePersons.get(id));
         return ret;
     }
 
@@ -930,7 +961,7 @@ public class Consultas {
             ret.add(stDefault);
         } else {
             for (Student st : ret) {
-                st.setName(fetchName(st.getId()));
+                st.setName(this.namePersons.get(st.getId()));
             }
         }
         return ret;
@@ -1148,7 +1179,7 @@ public class Consultas {
 
     void fillHashCourses(ArrayList<Course> courses) {
         for (int i = 0; i < courses.size(); i++) {
-            courseName.put(courses.get(i).getIdCourse(), fetchNameCourse(courses.get(i).getIdCourse()));
+            courseName.put(courses.get(i).getIdCourse(), this.nameCourses.get(courses.get(i).getIdCourse()));
         }
     }
 

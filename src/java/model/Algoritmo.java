@@ -176,27 +176,29 @@ public class Algoritmo {
         }
     }
 
-    private int buscarPosBlock(int x,int y, ArrayList<Tupla<Integer, ArrayList<Integer>>> stids ,ArrayList<ArrayList<Tupla>> sec){
-      /*  for (int i = 0; i < stids.size(); i++){
+    private int buscarPosBlock(int x, int y, ArrayList<Tupla<Integer, ArrayList<Integer>>> stids, ArrayList<ArrayList<Tupla>> sec) {
+        /*  for (int i = 0; i < stids.size(); i++){
             if(stids.get(i).x == pos) return i;
         }*/
-       int maxAlumnos = stids.get(0).getY().size();
-       
+        int maxAlumnos = stids.get(0).getY().size();
+
         for (int i = 0; i < stids.size(); i++) {
             for (int j = 0; j < sec.get(0).size(); j++) {
-                 if(((Integer)sec.get(stids.get(i).x).get(j).x == x  && (Integer)sec.get(stids.get(i).x).get(j).y == y )
-                    || ((Integer)sec.get(stids.get(i).x).get(j).x == y  && (Integer)sec.get(stids.get(i).x).get(j).y == x )
-                    && stids.get(i).y.size() >= maxAlumnos)
+                if (((Integer) sec.get(stids.get(i).x).get(j).x == x && (Integer) sec.get(stids.get(i).x).get(j).y == y)
+                        || ((Integer) sec.get(stids.get(i).x).get(j).x == y && (Integer) sec.get(stids.get(i).x).get(j).y == x)
+                        && stids.get(i).y.size() >= maxAlumnos) {
                     return i;
+                }
             }
-           
+
             //sec.get(stids.get(i).x)
         }
-       
+
         return -1;
     }
-    private void sortStidsByPriority(ArrayList<Tupla<Integer, ArrayList<Integer>>> stids,ArrayList<ArrayList<Tupla>> sec, Course c, Restrictions r) {
-       /* if (c.getPreferedBlocks() != null && c.getPreferedBlocks().size() > 0) {
+
+    private void sortStidsByPriority(ArrayList<Tupla<Integer, ArrayList<Integer>>> stids, ArrayList<ArrayList<Tupla>> sec, Course c, Restrictions r) {
+        /* if (c.getPreferedBlocks() != null && c.getPreferedBlocks().size() > 0) {
             for (int h = 0; h < c.getPreferedBlocks().get(c.getSections() - 1).size(); h++) {
                 ArrayList<Tupla> auxTupla = new ArrayList();
                 auxTupla.add(new Tupla(c.getPreferedBlocks().get(c.getSections() - 1).get(h).x - 1, c.getPreferedBlocks().get(c.getSections() - 1).get(h).y - 1));
@@ -208,20 +210,20 @@ public class Algoritmo {
                 }
             }
         }*/
-        
-       if (c.getPreferedBlocks() != null && c.getPreferedBlocks().size() > 0) {
-           for (int i = 0; i < c.getPreferedBlocks().get(c.getSections()-1).size(); i++) {
-               Tupla<Integer, ArrayList<Integer>> tuplaAux = new Tupla(stids.get(i).x, stids.get(i).y);
-               int res = buscarPosBlock((c.getPreferedBlocks().get(c.getSections()-1).get(i).x)-1,(c.getPreferedBlocks().get(c.getSections()-1).get(i).y) -1,stids,sec);
-               if(res != -1){
-                    stids.set(i,stids.get(res));
-                    stids.set(res,tuplaAux);
+
+        if (c.getPreferedBlocks() != null && c.getPreferedBlocks().size() > 0) {
+            for (int i = 0; i < c.getPreferedBlocks().get(c.getSections() - 1).size(); i++) {
+                Tupla<Integer, ArrayList<Integer>> tuplaAux = new Tupla(stids.get(i).x, stids.get(i).y);
+                int res = buscarPosBlock((c.getPreferedBlocks().get(c.getSections() - 1).get(i).x) - 1, (c.getPreferedBlocks().get(c.getSections() - 1).get(i).y) - 1, stids, sec);
+                if (res != -1) {
+                    stids.set(i, stids.get(res));
+                    stids.set(res, tuplaAux);
                     /*
                         ESTO MODIFICARA EL STIDS PONIENDO DELANTE LAS PRIORITARIAS
-                    */        
-                    
-               }
-           }
+                     */
+
+                }
+            }
         }
     }
 
@@ -264,16 +266,15 @@ public class Algoritmo {
                 }
             }
         }*/
-      //  updateStidsWithUserDefined(stids, r.totalBlocks);
-
+        //  updateStidsWithUserDefined(stids, r.totalBlocks);
         //Ordena la lista de conjuntos por numero de estudiantes de mayor a menor.
         try {
             stids.sort(new CompConjuntos());
-          // Collections.sort(stids,new CompConjuntos());
+            // Collections.sort(stids,new CompConjuntos());
         } catch (Exception e) { // esto da errores aveces solucionar comparador
             //return null;
         }
-        sortStidsByPriority(stids,sec,c,r);
+        sortStidsByPriority(stids, sec, c, r);
 
         //inicializo el conjunto de estudiantes seleccionables
         ArrayList<Integer> diferencia;
@@ -292,16 +293,16 @@ public class Algoritmo {
             //ordenar por prioridad los teachers
             ArrayList<Teacher> teachersOrderByPriority = new ArrayList<>();
             teachersOrderByPriority = teachers;
-            if(c.isBalanceTeachers()){
-                teachersOrderByPriority = sortTeacherByPriorty(teachers,c.getTrestricctions(),c.getMinSections());
-               //teachers = teachersOrderByPriority;
+            if (c.isBalanceTeachers()) {
+                teachersOrderByPriority = sortTeacherByPriorty(teachers, c.getTrestricctions(), c.getMinSections());
+                //teachers = teachersOrderByPriority;
             }
             // aqui meter un else que no los ordene pero si inserte elementos en teachersorderbypriority
-            
+
             for (Teacher t : teachersOrderByPriority) { // recorrido a los teachers  totales
                 Room compatibleRoom = null;
                 //compruebo que el profesor puede impartir esta clase
-              /*  if (c.getTrestricctions().contains(t.getIdTeacher()) //comprobar que el profesor puede dar ese curso
+                /*  if (c.getTrestricctions().contains(t.getIdTeacher()) //comprobar que el profesor puede dar ese curso
                         && t.asignaturaCursable(c.getIdCourse()) // comprueba que el profesor puede iniciar una nueva seccion
                         && t.patronCompatible(sec.get(stids.get(i).x))
                         && c.getSections() <= c.getMinSections()) {*/
@@ -439,24 +440,118 @@ public class Algoritmo {
         }
         return null;
     }
-    
-    private ArrayList<Teacher> sortTeacherByPriorty( ArrayList<Teacher> teachers,ArrayList<Integer> preferedTeachers,int numSections){
+/*
+    private ArrayList<Integer> studentSectionsBackTracking(Restrictions r, ArrayList<Teacher> teachers, Course c, int minsections, ArrayList<ArrayList<Tupla>> sec,
+            ArrayList<Integer> studentsCourse, HashMap<Integer, Integer> studentsCourseSection, HashMap<Integer, Student> students, ArrayList<Integer> rooms) {
+
+        ArrayList<Tupla<Integer, ArrayList<Integer>>> patronesStudents = new ArrayList<>();
+        ArrayList<Integer> idsAsignados = new ArrayList<>();
+
+        //Crea una lista con conjuntos de estudiantes compatibles con cada seccion
+        //disponible del curso.
+        // aqui es donde se tendra que modificar por donde se comenzara a buscar las posiciones del patron
+        for (int i = 0; i < sec.size(); i++) {
+            patronesStudents.add(new Tupla(i, new ArrayList<>()));
+            for (Integer j : studentsCourse) {
+                if (students.get(j).patronCompatible(sec.get(i))) {
+                    patronesStudents.get(i).y.add(j);
+                }
+            }
+        }
+
+        try {
+            patronesStudents.sort(new CompConjuntos());
+            // Collections.sort(stids,new CompConjuntos());
+        } catch (Exception e) { // esto da errores aveces solucionar comparador
+            //return null;
+        }
+        sortStidsByPriority(patronesStudents, sec, c, r);
+
+        ArrayList<Seccion> arraySeccion = new ArrayList<>(minsections);
+        ArrayList<Seccion> mejorArraySeccion = new ArrayList<>(minsections);
+        /*   ArrayList<Teacher> teachersOrderByPriority = new ArrayList<>();
+      
+        teachersOrderByPriority = teachers;
+        if (c.isBalanceTeachers()) {
+            teachersOrderByPriority = sortTeacherByPriorty(teachers, c.getTrestricctions(), c.getMinSections());
+            //teachers = teachersOrderByPriority;
+        }
+         *//*
+        int numAlumnosTotal = r.studentsCourse.get(c.getIdCourse()).size();
+        int maxStudentSeccion = c.getMaxChildPerSection();
+        if (maxStudentSeccion == 0) {
+            maxStudentSeccion = CHILDSPERSECTION; // POR DEFECTO
+        }
+
+        ArrayList<ArrayList<Boolean>> marcas = new ArrayList<>();
+
+        inicializarSols(arraySeccion,mejorArraySeccion,minsections);
+        inicializarMarcas(marcas,teachers.size(),patronesStudents.size());
         
+        backTrackingSchedule(patronesStudents, 0, arraySeccion, mejorArraySeccion, teachers, minsections, maxStudentSeccion,
+                numAlumnosTotal, marcas);
+        return null;
+    }*/
+
+    private ArrayList<Teacher> sortTeacherByPriorty(ArrayList<Teacher> teachers, ArrayList<Integer> preferedTeachers, int numSections) {
+
         ArrayList<Teacher> aux = new ArrayList<>();
-        if(preferedTeachers.isEmpty())
+        if (preferedTeachers.isEmpty()) {
             return aux;
-        
+        }
+
         for (int i = 0; i < numSections; i++) {
-            Teacher teacher = findTeacher(teachers, preferedTeachers.get(i%preferedTeachers.size()));
+            Teacher teacher = findTeacher(teachers, preferedTeachers.get(i % preferedTeachers.size()));
             aux.add(teacher);
         }
         return aux;
     }
-    private Teacher findTeacher(ArrayList<Teacher> teachers, int idTeacher){
+
+    private Teacher findTeacher(ArrayList<Teacher> teachers, int idTeacher) {
         for (int i = 0; i < teachers.size(); i++) {
-            if(teachers.get(i).getIdTeacher() == idTeacher)
+            if (teachers.get(i).getIdTeacher() == idTeacher) {
                 return teachers.get(i);
+            }
         }
         return null;
     }
+
+    /*private void backTrackingSchedule(ArrayList<Tupla<Integer, ArrayList<Integer>>> patronStudents, int k, ArrayList<Seccion> sol, ArrayList<Seccion> mejorSol, ArrayList<Teacher> arrayTeachers,
+            int numSecciones, int maxStudentSeccion, int maxStudentTotal, ArrayList<ArrayList<Boolean>> marcas) {
+        
+        if(k != 2){
+            int h = 0;
+            backTrackingSchedule(patronStudents, k+1, sol, mejorSol, arrayTeachers, numSecciones, maxStudentSeccion, maxStudentTotal, marcas);
+            h++;
+        }
+         for (int i = 0; i < patronStudents.size(); i++) {
+            for (int t = 0; t < arrayTeachers.size(); t++) {
+                if (esValido()) {
+                    marcas.get(t).set(i, false); // marco
+                    sol.set(k,new Seccion(patronStudents.get(i),arrayTeachers.get(t),patronStudents l));
+                }
+            }
+        }
+    }
+
+    
+    private void inicializarSols( ArrayList<Seccion> sol, ArrayList<Seccion> mejorSol, int tam){ // inicializa a false
+        for (int i = 0; i < tam; i++) {
+          sol.add(new Seccion());
+          mejorSol.add(new Seccion());
+        }
+    }
+     
+    private void inicializarMarcas(ArrayList<ArrayList<Boolean>> m,int filas, int cols){ // inicializa a false
+        for (int i = 0; i < filas; i++) {
+            ArrayList<Boolean> arrayAux = new ArrayList<>();
+            for (int j = 0; j < cols; j++) {
+                arrayAux.add(false);
+            }
+            m.add((ArrayList<Boolean>) arrayAux.clone());
+        }
+    }
+    private Boolean esValido() {
+        return false;
+    }*/
 }
