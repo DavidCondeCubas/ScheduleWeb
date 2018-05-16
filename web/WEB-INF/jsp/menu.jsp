@@ -53,7 +53,7 @@
                 $('#crearhorario').submit();
                 $('#pleaseWaitDialog').modal('show');
                 var start = new Date();
-var maxTime = 210000;
+var maxTime = 228000;
 var timeoutVal = Math.floor(maxTime/100);
 animateUpdate();
 
