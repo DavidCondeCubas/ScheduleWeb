@@ -47,6 +47,34 @@
                     $('#grouprooms').show();
                 }
             }
+            function enviando()
+            {
+                
+                $('#crearhorario').submit();
+                $('#pleaseWaitDialog').modal('show');
+                var start = new Date();
+var maxTime = 210000;
+var timeoutVal = Math.floor(maxTime/100);
+animateUpdate();
+
+function updateProgress(percentage) {
+    $('#pbar_innerdiv').css("width", percentage + "%");
+    $('#pbar_innertext').text(percentage + "%");
+}
+
+function animateUpdate() {
+    var now = new Date();
+    var timeDiff = now.getTime() - start.getTime();
+    var perc = Math.round((timeDiff/maxTime)*100);
+    console.log(perc);
+      if (perc <= 100) {
+       updateProgress(perc);
+       
+       setTimeout(animateUpdate, timeoutVal);
+      }
+}
+                
+            }
             /*private int id;
              private int cols;
              private int rows;
@@ -54,8 +82,25 @@
         </script>
     </head>
     <body>
+        <!-- Modal -->
+<div class="modal fade" id="pleaseWaitDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+          <h1>Procesando por favor espere ...</h1>
+      </div>
+      <div class="modal-body">
+        <div class="progress">
+            <div class="progress-bar progress-bar-success progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" id="pbar_innerdiv">
+            <div id="pbar_innertext" >0%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
         <div class="col-xs-12">
-            <form:form action="menu/create.htm" method="POST">
+            <form:form action="menu/create.htm" method="POST" id="crearhorario">
                 <div class="col-xs-3">
                     <fieldset>
                     <legend>Select Year</legend>
@@ -96,7 +141,7 @@
                 <div class="col-xs-3">
                     <fieldset>
                     <legend>Create Schedule</legend>
-                    <input class="btn btn-success col-xs-12" type="submit" name="Submit" value="Create">
+                    <input class="btn btn-success col-xs-12" type="button" name="Submit" value="Create" onclick="enviando()">
                     </fieldset>
                 </div>
             </form:form>

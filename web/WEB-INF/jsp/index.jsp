@@ -63,6 +63,7 @@
         </style>
         <script>
             $(document).ready(function () {
+                
                 $("#showSTC").click(function () {
                     $("#STC").toggleClass('in');
                 });
@@ -120,6 +121,7 @@
         -->
     </head>
     <body>
+        
         <%
             Consultas cs = (Consultas) request.getAttribute("cs");
             Integer TAMX = (Integer) request.getAttribute("TAMX");
@@ -511,7 +513,7 @@
                 </div>
             </div>
 
-            <div role="tabpanel" class="col-xs-12 tab-pane in active" id="rooms">
+            <!--<div role="tabpanel" class="col-xs-12 tab-pane in active" id="rooms">
                 <legend id="showRooms">
                     Schedule
                     <span class="col-xs-12 text-right glyphicon glyphicon-triangle-bottom">
@@ -582,7 +584,7 @@
                         }
                     %>
                 </div>
-            </div>
+            </div>-->
 
 
             <!--<div role="tabpanel" class="col-xs-12 tab-pane" id="log">
