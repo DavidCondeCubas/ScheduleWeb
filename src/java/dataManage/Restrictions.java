@@ -62,10 +62,10 @@ public class Restrictions {
         this.idCourses = new ArrayList();
         this.groupRooms = cs.roomsGroup(groupofrooms);
         ArrayList<Student> st = new ArrayList();
-        this.studentsCourse = Consultas.getCoursesGroups(st, idCourses, yearid, tempid); //20sg
+        this.studentsCourse = Consultas.getCoursesGroups(st, idCourses, yearid, tempid); //5sg
         this.students = new HashMap<>();
         st = (new Conjuntos<Student>()).union(st,
-                cs.restriccionesStudent(idCourses, studentsCourse, yearid));  //1min 20 sg
+                cs.restriccionesStudent(idCourses, studentsCourse, yearid));  
         for (Student s : st) {
             this.students.put(s.getId(), s);
         }
@@ -75,7 +75,7 @@ public class Restrictions {
         
         /*ArrayList<Integer> auxPrueba = new ArrayList<>();
         auxPrueba.add(idCourses.get(0));*/
-        this.courses = cs.getRestriccionesCourses(Consultas.convertIntegers(idCourses), cs.templateInfo(tempid));
+        this.courses = cs.getRestriccionesCourses(Consultas.convertIntegers(idCourses), cs.templateInfo(tempid));//aqui es donde tarda mucho
         this.courses.sort(new Restrictions.CompCoursesRank());
         this.teachers = cs.teachersList(tempid);
         cs.fillHashCourses(this.courses);

@@ -34,7 +34,7 @@ public class Consultas {
     private HashMap<Integer, String> nameCourses;
 
     /**
-     * 
+     *
      *////
     private ArrayList<ArrayList<Boolean>> totalBlocksStart;
     private int totalBlocks;
@@ -54,7 +54,7 @@ public class Consultas {
     private void cargarNames() {
         this.namePersons = new HashMap<>();
         this.nameCourses = new HashMap<>();
-        
+
         String consulta = "select * from person";
         String ret = "";
         ResultSet rs;
@@ -63,16 +63,20 @@ public class Consultas {
             while (rs.next()) {
                 ret = rs.getString("lastname") + ", ";
                 ret += rs.getString("firstname");
-                this.namePersons.put(rs.getInt("personid"), ret);
+                if (!this.namePersons.containsKey(rs.getInt("personid"))) {
+                    this.namePersons.put(rs.getInt("personid"), ret);
+                }
             }
-            
+
             consulta = "select * from courses";
             ResultSet rs2 = DBConnect.renweb.executeQuery(consulta);
-            
+
             while (rs2.next()) {
                 int idCourse = rs2.getInt("CourseID");
-                String title= rs2.getString("Title");
-                this.nameCourses.put(idCourse,title);
+                String title = rs2.getString("Title");
+                if (!this.nameCourses.containsKey(idCourse)) {
+                    this.nameCourses.put(idCourse, title);
+                }
             }
 
         } catch (SQLException ex) {
@@ -233,15 +237,78 @@ public class Consultas {
         return ret;
     }
 
+    private void cargarHashMap(HashMap<Integer, Object> hashObject, String groupType, String fieldName, String type) {
+        String consulta = "select udd.data,udd.id\n"
+                + "                from uddata udd\n"
+                + "                inner join udfield udf\n"
+                + "                    on udd.fieldid = udf.fieldid\n"
+                + "                inner join udgroup udg\n"
+                + "                    on udg.groupid = udf.groupid\n"
+                + "                    and udg.grouptype = '" + groupType + "'\n"
+                + "                    and udg.groupname = 'Schedule'\n"
+                + "                    and udf.fieldName = '" + fieldName + "'\n";
+
+        ResultSet rs;
+        try {
+            rs = DBConnect.renweb.executeQuery(consulta);
+            while (rs.next()) {
+                //   ret.get(i).setBlocksWeek(rs.getInt(1));
+                switch (type) {
+                    case "Integer":
+                        hashObject.put(rs.getInt("id"), rs.getInt("data"));
+                        break;
+                    case "Boolean":
+                        hashObject.put(rs.getInt("id"), rs.getBoolean("data"));
+                        break;
+                    case "String":
+                        hashObject.put(rs.getInt("id"), rs.getString("data"));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Consultas.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
     //AQUI ES DONDE TARDA *****
     public ArrayList<Course> getRestriccionesCourses(int[] ids, int[] tempinfo) {
         ArrayList<Course> ret = new ArrayList<>();
         String consulta = "";
+        HashMap<Integer, String> hashUno = new HashMap<>();
+        HashMap<Integer, String> hashDos = new HashMap<>();
+
         try {
             ResultSet rs;
-            boolean tempcorrect;
+
+            consulta = "select * from courses"
+                    + " where Elementary=" + tempinfo[0]
+                    + " and HS=" + tempinfo[1]
+                    + " and MidleSchool=" + tempinfo[2]
+                    + " and PreSchool=" + tempinfo[3];
+            rs = DBConnect.renweb.executeQuery(consulta);
+            while (rs.next()) {
+                hashUno.put(rs.getInt("courseid"), "");
+            }
+
+            consulta = "select udd.data,udd.id\n"
+                    + "                from uddata udd\n"
+                    + "                inner join udfield udf\n"
+                    + "                    on udd.fieldid = udf.fieldid\n"
+                    + "                inner join udgroup udg\n"
+                    + "                    on udg.groupid = udf.groupid\n"
+                    + "                    and udg.grouptype = 'course'\n"
+                    + "                    and udg.groupname = 'Schedule'\n"
+                    + "                    and udf.fieldName = 'Schedule'\n";
+            rs = DBConnect.renweb.executeQuery(consulta);
+            while (rs.next()) {
+                hashDos.put(rs.getInt("id"), rs.getString("data"));
+            }
+
             for (int i = 0; i < ids.length; i++) {
-                tempcorrect = false;
+                /*tempcorrect = false;
                 consulta = "select * from courses where courseid=" + ids[i]
                         + " and Elementary=" + tempinfo[0]
                         + " and HS=" + tempinfo[1]
@@ -268,9 +335,49 @@ public class Consultas {
                         ret.add(r);
                         courseName.put(ids[i], this.nameCourses.get(ids[i]));
                     }
+                }*/
+                if (hashUno.containsKey(ids[i]) && hashDos.containsKey(ids[i])) {
+                    Course r = new Course(ids[i]);
+                    ret.add(r);
+                    courseName.put(ids[i], this.nameCourses.get(ids[i]));
                 }
             }
+            HashMap<Integer, Object> hashBlocksPerWeek = new HashMap<>();
+            HashMap<Integer, Object> hashGR = new HashMap<>();
+            HashMap<Integer, Object> hashMaxSections = new HashMap<>();
+            HashMap<Integer, Object> hashMinGapBlocks = new HashMap<>();
+            HashMap<Integer, Object> hashMinGapDays = new HashMap<>();
+            HashMap<Integer, Object> hashRank = new HashMap<>();
+            HashMap<Integer, Object> hashTeachers = new HashMap<>();
+            HashMap<Integer, Object> hashRooms = new HashMap<>();
+            HashMap<Integer, Object> hashExcludeBlocksCourse = new HashMap<>();
+            HashMap<Integer, Object> hashExcludeBlocksSchool = new HashMap<>();
+            HashMap<Integer, Object> hashPreferredBlock = new HashMap<>();
+            HashMap<Integer, Object> hashbalanceTeachers = new HashMap<>();
+            HashMap<Integer, Object> hashMandatoryBlocksRange = new HashMap<>();
+            HashMap<Integer, Object> hashmaxBxD = new HashMap<>();
+
+            //cargarHashMap(hashBlocksPerWeek,'course','BlocksPerWeek','int');
+            cargarHashMap(hashBlocksPerWeek, "course", "BlocksPerWeek", "Integer");
+            cargarHashMap(hashGR, "course", "GR", "Boolean");
+            cargarHashMap(hashMaxSections, "course", "MaxSections", "String");
+            cargarHashMap(hashMinGapBlocks, "course", "MinGapBlocks", "String");
+            cargarHashMap(hashMinGapDays, "course", "MinGapDays", "Integer");
+            cargarHashMap(hashRank, "course", "Rank", "Integer");
+            cargarHashMap(hashTeachers, "course", "Teachers", "String");
+            cargarHashMap(hashRooms, "course", "Rooms", "String");
+            cargarHashMap(hashExcludeBlocksCourse, "course", "ExcludeBlocks", "String");
+            cargarHashMap(hashExcludeBlocksSchool, "school", "ExcludeBlocks", "String");
+            cargarHashMap(hashPreferredBlock, "course", "PreferredBlock", "String");
+            cargarHashMap(hashbalanceTeachers, "course", "balanceTeachers", "Boolean");
+            cargarHashMap(hashMandatoryBlocksRange, "course", "MandatoryBlocksRange", "String");
+            cargarHashMap(hashmaxBxD, "course", "maxBxD", "Integer");
+
             for (int i = 0; i < ret.size(); i++) {
+
+                /*int prueba1 = (int) hashBlocksPerWeek.get(ret.get(i).getIdCourse());
+                boolean prueba2 = (boolean) hashGR.get(ret.get(i).getIdCourse());
+                // for (int i = 0; i < 1; i++) {
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
@@ -285,8 +392,12 @@ public class Consultas {
                 rs = DBConnect.renweb.executeQuery(consulta);
                 while (rs.next()) {
                     ret.get(i).setBlocksWeek(rs.getInt(1));
+                }*/
+                if (hashBlocksPerWeek.containsKey(ret.get(i).getIdCourse())) {
+                    ret.get(i).setBlocksWeek((int) hashBlocksPerWeek.get(ret.get(i).getIdCourse()));
                 }
-
+                /*
+                
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
@@ -302,7 +413,11 @@ public class Consultas {
                 while (rs.next()) {
                     ret.get(i).setGR(rs.getBoolean(1));
                 }
-
+                 */
+                if (hashGR.containsKey(ret.get(i).getIdCourse())) {
+                    ret.get(i).setGR((boolean) hashGR.get(ret.get(i).getIdCourse()));
+                }
+                /*
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
@@ -318,7 +433,11 @@ public class Consultas {
                 while (rs.next()) {
                     ret.get(i).setMaxSections(rs.getString(1));
                 }
-
+                 */
+                if (hashMaxSections.containsKey(ret.get(i).getIdCourse())) {
+                    ret.get(i).setMaxSections((String) hashMaxSections.get(ret.get(i).getIdCourse()));
+                }
+                /*
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
@@ -334,7 +453,11 @@ public class Consultas {
                 while (rs.next()) {
                     ret.get(i).setMinGapBlocks(rs.getString(1));
                 }
-
+/*/
+                if (hashMinGapBlocks.containsKey(ret.get(i).getIdCourse())) {
+                    ret.get(i).setMinGapBlocks((String) hashMinGapBlocks.get(ret.get(i).getIdCourse()));
+                }
+                /*
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
@@ -352,8 +475,12 @@ public class Consultas {
                         ret.get(i).setMinGapDays(rs.getInt(1));
                     } catch (Exception e) {
                     }
-                }
+                }*/
 
+                if (hashMinGapDays.containsKey(ret.get(i).getIdCourse())) {
+                    ret.get(i).setMinGapDays((int) hashMinGapDays.get(ret.get(i).getIdCourse()));
+                }
+                /*
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
@@ -371,7 +498,11 @@ public class Consultas {
                         ret.get(i).setRank(rs.getInt(1));
                     } catch (Exception e) {
                     }
+                }*/
+                if (hashRank.containsKey(ret.get(i).getIdCourse())) {
+                    ret.get(i).setRank((int) hashRank.get(ret.get(i).getIdCourse()));
                 }
+                /*
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
@@ -387,6 +518,11 @@ public class Consultas {
                 String[] s = new String[2];
                 while (rs.next()) {
                     s = rs.getString(1).split(",");
+                }*/
+
+                String[] s = new String[2];
+                if (hashTeachers.containsKey(ret.get(i).getIdCourse())) {
+                    s = ((String) hashTeachers.get(ret.get(i).getIdCourse())).split(",");
                 }
                 ArrayList<Integer> ar = new ArrayList<>();
                 for (String s2 : s) {
@@ -399,7 +535,7 @@ public class Consultas {
                     }
                 }
                 ret.get(i).setTrestricctions(ar);
-
+                /*
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
@@ -426,7 +562,22 @@ public class Consultas {
                         }
                     }
                 }
-
+                 */
+                String rooms = "";
+                if (hashRooms.containsKey(ret.get(i).getIdCourse())) {
+                    rooms = (String) hashRooms.get(ret.get(i).getIdCourse());
+                }
+                if (!rooms.equals("")) {
+                    for (String room : rooms.split(",")) {
+                        try {
+                            ret.get(i).addRoom(Integer.parseInt(room));
+                        } catch (Exception e) {
+                            System.err.println("no se puede leer bien el campo rooms en el curso"
+                                    + ret.get(i).getIdCourse());
+                        }
+                    }
+                }
+                /*
                 consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
@@ -442,6 +593,11 @@ public class Consultas {
                 String excludes = "";
                 while (rs.next()) {
                     excludes += rs.getString(1);
+                }
+                 */
+                String excludes = "";
+                if (hashExcludeBlocksCourse.containsKey(ret.get(i).getIdCourse())) {
+                    excludes += (String) hashExcludeBlocksCourse.get(ret.get(i).getIdCourse());
                 }
 
                 consulta = "select udd.data\n"
@@ -465,7 +621,7 @@ public class Consultas {
 
                 //**David solo prueba**//         
                 String prefered = "";
-                consulta = "select udd.data\n"
+                /*consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
                         + "                    on udd.fieldid = udf.fieldid\n"
@@ -479,13 +635,14 @@ public class Consultas {
                 rs = DBConnect.renweb.executeQuery(consulta);
                 while (rs.next()) {
                     prefered += rs.getString(1);
+                }*/
+                if (hashPreferredBlock.containsKey(ret.get(i).getIdCourse())) {
+                    ret.get(i).setPreferedBlocks((String) hashPreferredBlock.get(ret.get(i).getIdCourse()));
                 }
-
-                ret.get(i).setPreferedBlocks(prefered);
 
                 //**David solo prueba**//         
                 boolean balanceTeachers = false;
-                consulta = "select udd.data\n"
+                /* consulta = "select udd.data\n"
                         + "                from uddata udd\n"
                         + "                inner join udfield udf\n"
                         + "                    on udd.fieldid = udf.fieldid\n"
@@ -500,8 +657,56 @@ public class Consultas {
                 while (rs.next()) {
                     balanceTeachers = rs.getBoolean(1);
                 }
-
+                 */
+                if (hashbalanceTeachers.containsKey(ret.get(i).getIdCourse())) {
+                    balanceTeachers = (boolean) hashbalanceTeachers.get(ret.get(i).getIdCourse());
+                }
                 ret.get(i).setBalanceTeachers(balanceTeachers);
+
+                String mandatoryBlock = "";
+                /*consulta = "select udd.data\n"
+                        + "                from uddata udd\n"
+                        + "                inner join udfield udf\n"
+                        + "                    on udd.fieldid = udf.fieldid\n"
+                        + "                inner join udgroup udg\n"
+                        + "                    on udg.groupid = udf.groupid\n"
+                        + "                    and udg.grouptype = 'course'\n"
+                        + "                    and udg.groupname = 'Schedule'\n"
+                        + "                    and udf.fieldName = 'MandatoryBlocksRange'\n"
+                        + "                where udd.id =" + ret.get(i).getIdCourse();
+
+                rs = DBConnect.renweb.executeQuery(consulta);
+                while (rs.next()) {
+                    mandatoryBlock = rs.getString(1);
+                }
+                */
+                if (hashMandatoryBlocksRange.containsKey(ret.get(i).getIdCourse())) {
+                    mandatoryBlock = (String) hashMandatoryBlocksRange.get(ret.get(i).getIdCourse());
+                }
+                
+                ret.get(i).setMandatoryBlockRange(mandatoryBlock);
+
+                int numBxD = 1;
+                /*consulta = "select udd.data\n"
+                        + "                from uddata udd\n"
+                        + "                inner join udfield udf\n"
+                        + "                    on udd.fieldid = udf.fieldid\n"
+                        + "                inner join udgroup udg\n"
+                        + "                    on udg.groupid = udf.groupid\n"
+                        + "                    and udg.grouptype = 'course'\n"
+                        + "                    and udg.groupname = 'Schedule'\n"
+                        + "                    and udf.fieldName = 'maxBxD'\n"
+                        + "                where udd.id =" + ret.get(i).getIdCourse();
+
+                rs = DBConnect.renweb.executeQuery(consulta);
+                while (rs.next()) {
+                    numBxD = rs.getInt(1);
+                }
+*/ 
+                if (hashmaxBxD.containsKey(ret.get(i).getIdCourse())) {
+                    numBxD = (int) hashmaxBxD.get(ret.get(i).getIdCourse());
+                }
+                ret.get(i).setMaxBlocksPerDay(numBxD);
 
                 ///***///
                 consulta = "select MaxSize from courses where courseid="
@@ -1063,7 +1268,7 @@ public class Consultas {
                 c.setRank(rs.getInt("rank"));
                 c.setGR(rs.getBoolean("gender"));
                 c.setExcludeBlocksOwnDB(rs.getString("excludeblocks"));
-                c.setMaxBlocksPerDay(rs.getInt("maxblocksperday"));
+                // c.setMaxBlocksPerDay(rs.getInt("maxblocksperday"));
                 c.setRooms(rs.getString("rooms"));
                 c.setExcludeCols("excludecols");
                 c.setExcludeRows("ecluderows");

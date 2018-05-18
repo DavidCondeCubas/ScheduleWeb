@@ -49,31 +49,31 @@
             }
             function enviando()
             {
-                
+
                 $('#crearhorario').submit();
                 $('#pleaseWaitDialog').modal('show');
                 var start = new Date();
-var maxTime = 228000;
-var timeoutVal = Math.floor(maxTime/100);
-animateUpdate();
+                var maxTime = 60000;
+                var timeoutVal = Math.floor(maxTime / 100);
+                animateUpdate();
 
-function updateProgress(percentage) {
-    $('#pbar_innerdiv').css("width", percentage + "%");
-    $('#pbar_innertext').text(percentage + "%");
-}
+                function updateProgress(percentage) {
+                    $('#pbar_innerdiv').css("width", percentage + "%");
+                    $('#pbar_innertext').text(percentage + "%");
+                }
 
-function animateUpdate() {
-    var now = new Date();
-    var timeDiff = now.getTime() - start.getTime();
-    var perc = Math.round((timeDiff/maxTime)*100);
-    console.log(perc);
-      if (perc <= 100) {
-       updateProgress(perc);
-       
-       setTimeout(animateUpdate, timeoutVal);
-      }
-}
-                
+                function animateUpdate() {
+                    var now = new Date();
+                    var timeDiff = now.getTime() - start.getTime();
+                    var perc = Math.round((timeDiff / maxTime) * 100);
+                    console.log(perc);
+                    if (perc <= 100) {
+                        updateProgress(perc);
+
+                        setTimeout(animateUpdate, timeoutVal);
+                    }
+                }
+
             }
             /*private int id;
              private int cols;
@@ -83,65 +83,65 @@ function animateUpdate() {
     </head>
     <body>
         <!-- Modal -->
-<div class="modal fade" id="pleaseWaitDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-          <h1>Procesando por favor espere ...</h1>
-      </div>
-      <div class="modal-body">
-        <div class="progress">
-            <div class="progress-bar progress-bar-success progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" id="pbar_innerdiv">
-            <div id="pbar_innertext" >0%</div>
-          </div>
+        <div class="modal fade" id="pleaseWaitDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1>Procesando por favor espere ...</h1>
+                    </div>
+                    <div class="modal-body">
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-success progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" id="pbar_innerdiv">
+                                <div id="pbar_innertext" >0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
         <div class="col-xs-12">
             <form:form action="menu/create.htm" method="POST" id="crearhorario">
                 <div class="col-xs-3">
                     <fieldset>
-                    <legend>Select Year</legend>
-                    <select class="form-control" id="selectyear" name="yearid" onchange="templates()">
-                        <option></option>
-                        <c:forEach var="year" items="${years}">
-                            <option value="${year.x}">${year.y}</option>
-                        </c:forEach>
-                    </select>
+                        <legend>Select Year</legend>
+                        <select class="form-control" id="selectyear" name="yearid" onchange="templates()">
+                            <option></option>
+                            <c:forEach var="year" items="${years}">
+                                <option value="${year.x}">${year.y}</option>
+                            </c:forEach>
+                        </select>
                     </fieldset>
                 </div>
                 <div class="col-xs-3">
                     <fieldset>
-                    <legend>Select Template</legend>
-                    <select class="form-control" name="templateInfo" id="selecttemplate">
-                    </select>
+                        <legend>Select Template</legend>
+                        <select class="form-control" name="templateInfo" id="selecttemplate">
+                        </select>
                     </fieldset>
                 </div>
                 <div class="col-xs-3">
                     <fieldset>
-                    <legend>schedule mode</legend>
-                    <select class="form-control" id="roomsmode" name="rooms" onchange="hideroomsgroup()">
-                        <option value="0">disabled</option>
-                        <option value="1">only courses with room restrictions</option>
-                        <option value="2">only default school user defined</option>
-                        <option value="3">both (courses and default)</option>
-                    </select>
-                    <legend>Select rooms</legend>
-                    <select class="form-control" id="grouprooms" name="groupofrooms">
-                        <option value="rooms01">rooms 01</option>
-                        <option value="rooms02">rooms 02</option>
-                        <option value="rooms03">rooms 03</option>
-                        <option value="rooms04">rooms 04</option>
-                    </select>
+                        <legend>schedule mode</legend>
+                        <select class="form-control" id="roomsmode" name="rooms" onchange="hideroomsgroup()">
+                            <option value="0">disabled</option>
+                            <option value="1">only courses with room restrictions</option>
+                            <option value="2">only default school user defined</option>
+                            <option value="3">both (courses and default)</option>
+                        </select>
+                        <legend>Select rooms</legend>
+                        <select class="form-control" id="grouprooms" name="groupofrooms">
+                            <option value="rooms01">rooms 01</option>
+                            <option value="rooms02">rooms 02</option>
+                            <option value="rooms03">rooms 03</option>
+                            <option value="rooms04">rooms 04</option>
+                        </select>
                     </fieldset>
                 </div>
 
                 <div class="col-xs-3">
                     <fieldset>
-                    <legend>Create Schedule</legend>
-                    <input class="btn btn-success col-xs-12" type="button" name="Submit" value="Create" onclick="enviando()">
+                        <legend>Create Schedule</legend>
+                        <input class="btn btn-success col-xs-12" type="button" name="Submit" value="Create" onclick="enviando()">
                     </fieldset>
                 </div>
             </form:form>

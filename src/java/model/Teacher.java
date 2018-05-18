@@ -32,6 +32,19 @@ public class Teacher{
     private HashMap<Integer,Integer> secciones;
     private ArrayList excludeCols;
     private ArrayList excludeRows;
+    private int numSecciones;
+
+    public int getNumSecciones() {
+        return numSecciones;
+    }
+
+    public void setNumSecciones(int numSecciones) {
+        this.numSecciones = numSecciones;
+    }
+    public void incrementarNumSecciones(){
+        this.numSecciones++;
+    }
+    
     
     public void insertarOActualizarDB(){
         String consulta="select * from teachers where id="+idTeacher;
@@ -63,6 +76,7 @@ public class Teacher{
         prepsComplete = new ArrayList<>();
         excludeBlocks = new ArrayList();
         secciones = new HashMap<>();
+        numSecciones=0;
     }
     
     /**

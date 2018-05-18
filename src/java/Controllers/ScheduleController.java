@@ -38,7 +38,7 @@ public class ScheduleController {
         mv.addObject("hcols",Consultas.getColHeader(id, x)); //2sg
         Algoritmo algo = new Algoritmo(x,y);
         Restrictions r = new Restrictions(yearid,tempid,roomgroup,1);
-        r.syncOwnDB();
+        //r.syncOwnDB();
         algo.algo(mv,r,roommode);
         String json = r.teachersJSON();
         return mv;

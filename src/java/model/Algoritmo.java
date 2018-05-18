@@ -77,28 +77,28 @@ public class Algoritmo {
                 noAsignSection.put(noAsign.get(i), i % minsections);
             }
             //id:695  science
-            if (course.opciones(r.totalBlocks).size() > 0) {
+            if (course.opciones(r.totalBlocks, Log).size() > 0) {
                 //Segun el modo de gestion de clases cambia como rellenas la parte de studentsSections
                 switch (roommode) {
                     case 0:
                         noAsign = studentSections(r, r.teachers, course, minsections,
-                                course.opciones(r.totalBlocks), noAsign, noAsignSection, r.students, null);
+                                course.opciones(r.totalBlocks, Log), noAsign, noAsignSection, r.students, null);
                         break;
                     case 1:
                         noAsign = studentSections(r, r.teachers, course, minsections,
-                                course.opciones(r.totalBlocks), noAsign, noAsignSection, r.students, course.getRooms());
+                                course.opciones(r.totalBlocks, Log), noAsign, noAsignSection, r.students, course.getRooms());
                         break;
                     case 2:
                         noAsign = studentSections(r, r.teachers, course, minsections,
-                                course.opciones(r.totalBlocks), noAsign, noAsignSection, r.students, r.groupRooms);
+                                course.opciones(r.totalBlocks, Log), noAsign, noAsignSection, r.students, r.groupRooms);
                         break;
                     case 3:
                         if (course.getRooms().isEmpty()) {
                             noAsign = studentSections(r, r.teachers, course, minsections,
-                                    course.opciones(r.totalBlocks), noAsign, noAsignSection, r.students, r.groupRooms);
+                                    course.opciones(r.totalBlocks, Log), noAsign, noAsignSection, r.students, r.groupRooms);
                         } else {
                             noAsign = studentSections(r, r.teachers, course, minsections,
-                                    course.opciones(r.totalBlocks), noAsign, noAsignSection, r.students, course.getRooms());
+                                    course.opciones(r.totalBlocks, Log), noAsign, noAsignSection, r.students, course.getRooms());
                         }
                         break;
                     default:
@@ -227,6 +227,8 @@ public class Algoritmo {
         }
     }
 
+    
+    /* FUNCIONANDO VERSION CLIENTE */
     private ArrayList<Integer> studentSections(Restrictions r, ArrayList<Teacher> teachers, Course c, int minsections, ArrayList<ArrayList<Tupla>> sec,
             ArrayList<Integer> studentsCourse, HashMap<Integer, Integer> studentsCourseSection, HashMap<Integer, Student> students, ArrayList<Integer> rooms) {
 
@@ -288,17 +290,17 @@ public class Algoritmo {
         int i = 0;
         int numSeccion = 0; // indicara numeros de seccion se iniciara en 0 hasta el n-1 seccion
 
+        //ordenar por prioridad los teachers
+        ArrayList<Teacher> teachersOrderByPriority = new ArrayList<>();
+        teachersOrderByPriority = teachers;
+        if (c.isBalanceTeachers()) {
+            teachersOrderByPriority = sortTeacherByPriorty(teachers, c.getTrestricctions(), c.getMinSections());
+            //teachers = teachersOrderByPriority;
+        }
+        // aqui meter un else que no los ordene pero si inserte elementos en teachersorderbypriority
+
         //recorro la lista de conjuntos y la de profesores
         while (i < stids.size()) { // recorrido a los bloques disponibles
-            //ordenar por prioridad los teachers
-            ArrayList<Teacher> teachersOrderByPriority = new ArrayList<>();
-            teachersOrderByPriority = teachers;
-            if (c.isBalanceTeachers()) {
-                teachersOrderByPriority = sortTeacherByPriorty(teachers, c.getTrestricctions(), c.getMinSections());
-                //teachers = teachersOrderByPriority;
-            }
-            // aqui meter un else que no los ordene pero si inserte elementos en teachersorderbypriority
-
             for (Teacher t : teachersOrderByPriority) { // recorrido a los teachers  totales
                 Room compatibleRoom = null;
                 //compruebo que el profesor puede impartir esta clase
@@ -370,6 +372,15 @@ public class Algoritmo {
                         //y añadimos la seccion a la tabla del curso.
                         if (k > 0) { // se llena los huecos de ese profesor incluyendole la seccion
                             t.ocuparHueco(sec.get(stids.get(i).x), c.getIdCourse() * 100 + c.getSections());
+                            t.incrementarNumSecciones();
+                            //**/ esto funcionaria para el balanceado
+                            if (c.isBalanceTeachers()) {
+                             //   teachersOrderByPriority.remove(t);
+                                 ArrayList<Teacher> teachersOrderByPriorityAux = (ArrayList<Teacher>) teachersOrderByPriority.clone(); 
+                                 teachersOrderByPriorityAux.remove(t);
+                                 teachersOrderByPriority = teachersOrderByPriorityAux;
+                            }
+
                             c.ocuparHueco(sec.get(stids.get(i).x));
                             if (compatibleRoom != null) {
                                 compatibleRoom.ocuparHueco(c.getIdCourse() * 100 + c.getSections(), sec.get(stids.get(i).x));
@@ -423,7 +434,7 @@ public class Algoritmo {
                 for (Integer i2 : ret) {
                     anadir += students.get(i2).getName() + ",";
                     if (aux == null) {
-                        aux = students.get(i2).listPatronesCompatibles(c.opciones(r.totalBlocks));
+                        aux = students.get(i2).listPatronesCompatibles(c.opciones(r.totalBlocks, Log));
                     } else {
                         aux = students.get(i2).listPatronesCompatibles(aux);
                     }
@@ -440,7 +451,7 @@ public class Algoritmo {
         }
         return null;
     }
-/*
+
     private ArrayList<Integer> studentSectionsBackTracking(Restrictions r, ArrayList<Teacher> teachers, Course c, int minsections, ArrayList<ArrayList<Tupla>> sec,
             ArrayList<Integer> studentsCourse, HashMap<Integer, Integer> studentsCourseSection, HashMap<Integer, Student> students, ArrayList<Integer> rooms) {
 
@@ -476,25 +487,28 @@ public class Algoritmo {
             teachersOrderByPriority = sortTeacherByPriorty(teachers, c.getTrestricctions(), c.getMinSections());
             //teachers = teachersOrderByPriority;
         }
-         *//*
+         */
         int numAlumnosTotal = r.studentsCourse.get(c.getIdCourse()).size();
         int maxStudentSeccion = c.getMaxChildPerSection();
         if (maxStudentSeccion == 0) {
             maxStudentSeccion = CHILDSPERSECTION; // POR DEFECTO
         }
 
-        ArrayList<ArrayList<Boolean>> marcas = new ArrayList<>();
+        ArrayList<ArrayList<Boolean>> marcasTeacherPatron = new ArrayList<>();
 
-        inicializarSols(arraySeccion,mejorArraySeccion,minsections);
-        inicializarMarcas(marcas,teachers.size(),patronesStudents.size());
-        
-        backTrackingSchedule(patronesStudents, 0, arraySeccion, mejorArraySeccion, teachers, minsections, maxStudentSeccion,
-                numAlumnosTotal, marcas);
+        inicializarSols(arraySeccion, mejorArraySeccion, minsections);
+        inicializarMarcas(marcasTeacherPatron, teachers.size(), patronesStudents.size());
+        int numAlumnosAsignados = 0;
+        int sectionsAsignadas = 0;
+        int mejorNumAlumnosAsignados = 0;
+
+        backTrackingSchedule(patronesStudents, 0, arraySeccion, mejorArraySeccion, teachers, sectionsAsignadas, minsections, maxStudentSeccion,
+                numAlumnosAsignados, mejorNumAlumnosAsignados, numAlumnosTotal, marcasTeacherPatron);
         return null;
-    }*/
+    }
 
     private ArrayList<Teacher> sortTeacherByPriorty(ArrayList<Teacher> teachers, ArrayList<Integer> preferedTeachers, int numSections) {
-
+        // ESTO TAMBIEN DEPENDERA DE LA CANTIDAD DE SECCIONES QUE TENGA CADA PROFESOR HASTA ESTE MOMENTO
         ArrayList<Teacher> aux = new ArrayList<>();
         if (preferedTeachers.isEmpty()) {
             return aux;
@@ -516,33 +530,55 @@ public class Algoritmo {
         return null;
     }
 
-    /*private void backTrackingSchedule(ArrayList<Tupla<Integer, ArrayList<Integer>>> patronStudents, int k, ArrayList<Seccion> sol, ArrayList<Seccion> mejorSol, ArrayList<Teacher> arrayTeachers,
-            int numSecciones, int maxStudentSeccion, int maxStudentTotal, ArrayList<ArrayList<Boolean>> marcas) {
-        
-        if(k != 2){
-            int h = 0;
-            backTrackingSchedule(patronStudents, k+1, sol, mejorSol, arrayTeachers, numSecciones, maxStudentSeccion, maxStudentTotal, marcas);
-            h++;
-        }
-         for (int i = 0; i < patronStudents.size(); i++) {
+    private void backTrackingSchedule(ArrayList<Tupla<Integer, ArrayList<Integer>>> patronStudents, int k, ArrayList<Seccion> sol, ArrayList<Seccion> mejorSol, ArrayList<Teacher> arrayTeachers,
+            int sectionsAsignadas, int numSeccionesMax, int maxStudentSeccion, int numAlumnos, int mejorNumAlumnos, int numStudentTotal, ArrayList<ArrayList<Boolean>> marcas) {
+
+        for (int i = 0; i < patronStudents.size(); i++) {
             for (int t = 0; t < arrayTeachers.size(); t++) {
                 if (esValido()) {
-                    marcas.get(t).set(i, false); // marco
-                    sol.set(k,new Seccion(patronStudents.get(i),arrayTeachers.get(t),patronStudents l));
+                    marcas.get(t).set(i, true); // marco
+                    int k_actual = k;
+                    int numAlumnosActual = numAlumnos;
+                    numAlumnos += patronStudents.get(i).getY().size() % maxStudentSeccion;
+
+                    ArrayList<Tupla<Integer, ArrayList<Integer>>> patronStudentsActual = (ArrayList<Tupla<Integer, ArrayList<Integer>>>) patronStudents.clone();
+                    actualizarPatronStudents(patronStudents, patronStudents.get(i).getY());
+
+                    sol.set(k, new Seccion(patronStudents.get(i).getY(), arrayTeachers.get(t),
+                            patronStudents.get(i).getY().size() % maxStudentSeccion));
+
+                    if (sectionsAsignadas == numSeccionesMax) { //sol final
+
+                        if (mejorNumAlumnos <= numAlumnos) { // mejor solucion
+                            // copiarMejorSolucion();
+                        }
+                    } else {
+                        backTrackingSchedule(patronStudents, k + 1, sol, mejorSol, arrayTeachers,
+                                sectionsAsignadas, numSeccionesMax, maxStudentSeccion, numAlumnos, mejorNumAlumnos, numStudentTotal, marcas);
+                    }
+                    k = k_actual;
+                    numAlumnos = numAlumnosActual;
+                    patronStudents = patronStudentsActual;
+                    marcas.get(t).set(i, false);
                 }
             }
         }
     }
 
-    
-    private void inicializarSols( ArrayList<Seccion> sol, ArrayList<Seccion> mejorSol, int tam){ // inicializa a false
-        for (int i = 0; i < tam; i++) {
-          sol.add(new Seccion());
-          mejorSol.add(new Seccion());
+    private void actualizarPatronStudents(ArrayList<Tupla<Integer, ArrayList<Integer>>> patronStudents, ArrayList<Integer> studentsAsignados) {
+        for (int i = 0; i < patronStudents.size(); i++) {
+            patronStudents.set(i, new Tupla(patronStudents.get(i).getX(), this.conjuntos.diferencia(patronStudents.get(i).getY(), studentsAsignados)));
         }
     }
-     
-    private void inicializarMarcas(ArrayList<ArrayList<Boolean>> m,int filas, int cols){ // inicializa a false
+
+    private void inicializarSols(ArrayList<Seccion> sol, ArrayList<Seccion> mejorSol, int tam) { // inicializa a false
+        for (int i = 0; i < tam; i++) {
+            sol.add(new Seccion());
+            mejorSol.add(new Seccion());
+        }
+    }
+
+    private void inicializarMarcas(ArrayList<ArrayList<Boolean>> m, int filas, int cols) { // inicializa a false
         for (int i = 0; i < filas; i++) {
             ArrayList<Boolean> arrayAux = new ArrayList<>();
             for (int j = 0; j < cols; j++) {
@@ -551,7 +587,8 @@ public class Algoritmo {
             m.add((ArrayList<Boolean>) arrayAux.clone());
         }
     }
+
     private Boolean esValido() {
         return false;
-    }*/
+    }
 }
