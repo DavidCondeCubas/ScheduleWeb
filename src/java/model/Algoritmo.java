@@ -154,6 +154,15 @@ public class Algoritmo {
         }
     }
 
+    private class CompSeccionesStudents implements Comparator<Seccion> {
+
+        @Override
+        public int compare(Seccion o1, Seccion o2) {
+            return o1.getNumStudents() - o2.getNumStudents();
+        }
+
+    }
+
     private void deleteInStids(ArrayList<Tupla<Integer, ArrayList<Integer>>> stids, int pos) {
         for (int i = 0; i < stids.size(); i++) {
             if (stids.get(i).getX() == pos) {
@@ -227,14 +236,20 @@ public class Algoritmo {
         }
     }
 
-    
-    /* FUNCIONANDO VERSION CLIENTE */
-    private ArrayList<Integer> studentSections(Restrictions r, ArrayList<Teacher> teachers, Course c, int minsections, ArrayList<ArrayList<Tupla>> sec,
+    private void initHashStudents(HashMap<Integer, Integer> hashStudents, ArrayList<Integer> students) {
+        for (Integer student : students) {
+            hashStudents.put(student, 0);
+        }
+    }
+
+    private ArrayList<Integer> studentSections_2(Restrictions r, ArrayList<Teacher> teachers, Course c, int minsections, ArrayList<ArrayList<Tupla>> sec,
             ArrayList<Integer> studentsCourse, HashMap<Integer, Integer> studentsCourseSection, HashMap<Integer, Student> students, ArrayList<Integer> rooms) {
 
         ArrayList<Tupla<Integer, ArrayList<Integer>>> stids = new ArrayList<>();
         ArrayList<Integer> idsAsignados = new ArrayList<>();
+        HashMap<Integer, Integer> hashStudents_cantPatrones = new HashMap<>();
 
+        initHashStudents(hashStudents_cantPatrones, studentsCourse);
         //Crea una lista con conjuntos de estudiantes compatibles con cada seccion
         //disponible del curso.
         // aqui es donde se tendra que modificar por donde se comenzara a buscar las posiciones del patron
@@ -243,11 +258,157 @@ public class Algoritmo {
             for (Integer j : studentsCourse) {
                 if (students.get(j).patronCompatible(sec.get(i))) {
                     stids.get(i).y.add(j);
+                    hashStudents_cantPatrones.put(j, hashStudents_cantPatrones.get(j) + 1);
                 }
+
             }
         }
 
+        //Ordena la lista de conjuntos por numero de estudiantes de mayor a menor.
+        try {
+            stids.sort(new CompConjuntos());
+            // Collections.sort(stids,new CompConjuntos());
+        } catch (Exception e) { // esto da errores aveces solucionar comparador
+            //return null;
+        }
+        sortStidsByPriority(stids, sec, c, r);
 
+        //inicializo el conjunto de estudiantes seleccionables
+        ArrayList<Integer> diferencia;
+        if (!stids.isEmpty()) {
+            diferencia = stids.get(0).y;
+        } else {
+            diferencia = new ArrayList();
+        }
+        int lastTeacher = -1;
+        int lastStudent = -1;
+        int i = 0;
+        int numSeccion = 0; // indicara numeros de seccion se iniciara en 0 hasta el n-1 seccion
+
+        //ordenar por prioridad los teachers
+        ArrayList<Teacher> teachersOrderByPriority = new ArrayList<>();
+        teachersOrderByPriority = teachers;
+        if (c.isBalanceTeachers()) {
+            teachersOrderByPriority = sortTeacherByPriorty(teachers, c.getTrestricctions(), c.getMinSections());
+            //teachers = teachersOrderByPriority;
+        }
+        // aqui meter un else que no los ordene pero si inserte elementos en teachersorderbypriority
+
+        //recorro la lista de conjuntos y la de profesores
+        while (i < stids.size()) { // recorrido a los bloques disponibles
+            for (Teacher t : teachersOrderByPriority) { // recorrido a los teachers  totales
+
+            }
+            if (i + 1 < stids.size()) {
+                diferencia = conjuntos.diferencia(stids.get(i + 1).y, stids.get(i).y);
+            }
+            i++;
+        }
+
+        c.setStudentsAsignados(idsAsignados); // se actualiza la lista aunque no se usaron a todos los estudiantes
+        for (Integer st : idsAsignados) {
+            students.get(st).addAsignado(c.getIdCourse());
+        }
+
+        //Si los estudiantes asignados son menos que el numero de students request
+        //creamos una entrada en el log y ponemos el porcentaje de acierto en el curso.
+        if (idsAsignados.size() != studentsCourse.size()) {
+            System.out.println("FAILURE");
+            ArrayList<Integer> ret = conjuntos.diferencia(studentsCourse, idsAsignados);
+            String tname = "";
+            for (Integer teacher : c.getTrestricctions()) {
+                tname += r.cs.fetchName(teacher) + " ,";
+            }
+            if (tname.length() > 2) {
+                tname = tname.substring(0, tname.length() - 1);
+            }
+            if (c.getTrestricctions().isEmpty()) {
+                Log.add("-No hay profesores asignados al curso:" + r.cs.nameCourse(c.getIdCourse()));
+            } else if (lastTeacher <= lastStudent) {
+                Log.add("-Los profesores " + tname + " asignados al curso:" + r.cs.nameCourse(c.getIdCourse()) + " no tienen disponible ningun hueco compatible");
+            } else {
+                Log.add("-Los siguientes estudiantes no tienen secciones disponibles para el curso " + r.cs.nameCourse(c.getIdCourse()) + ":");
+                String anadir = "";
+                ArrayList<ArrayList<Tupla>> aux = null;
+                for (Integer i2 : ret) {
+                    anadir += students.get(i2).getName() + ",";
+                    if (aux == null) {
+                        aux = students.get(i2).listPatronesCompatibles(c.opciones(r.totalBlocks, Log));
+                    } else {
+                        aux = students.get(i2).listPatronesCompatibles(aux);
+                    }
+                }
+                c.setPatronesStudents(aux);
+
+                //anadir = anadir.substring(0, anadir.length() - 2) + ".";
+                Log.add(anadir);
+            }
+            for (Integer st : ret) {
+                students.get(st).addNoAsignado(c.getIdCourse());
+            }
+            return ret;
+        }
+        return null;
+    }
+
+    public class CustomComparatorStudent implements Comparator<Student> {
+
+        @Override
+        public int compare(Student o1, Student o2) {
+            return o1.getNumPatrones() - o2.getNumPatrones();
+        }
+    }
+
+    private void sortStudentsByPatron(ArrayList<Tupla<Integer, ArrayList<Integer>>> stids, HashMap<Integer, Integer> hashStudents_cantPatrones) {
+        for (int i = 0; i < stids.size(); i++) {
+            ArrayList<Student> auxStudents = new ArrayList<>();
+            for (int j = 0; j < stids.get(i).getY().size(); j++) {
+                auxStudents.add(new Student(stids.get(i).getY().get(j), hashStudents_cantPatrones.get(stids.get(i).getY().get(j))));
+            }
+            Collections.sort(auxStudents, new CustomComparatorStudent());
+            ArrayList<Integer> auxIds = new ArrayList<>();
+            for (int j = 0; j < auxStudents.size(); j++) {
+                auxIds.add(auxStudents.get(j).getId());
+            }
+            stids.set(i, new Tupla(stids.get(i).x, auxIds));
+        }
+    }
+
+    //FUNCIONANDO VERSION CLIENTE
+    private ArrayList<Integer> studentSections(Restrictions r, ArrayList<Teacher> teachers, Course c, int minSection, ArrayList<ArrayList<Tupla>> sec,
+            ArrayList<Integer> studentsCourse, HashMap<Integer, Integer> studentsCourseSection, HashMap<Integer, Student> students, ArrayList<Integer> rooms) {
+
+     
+        int maxStudentSection = c.getMaxChildPerSection();
+
+        if (maxStudentSection == 0) {
+            maxStudentSection = CHILDSPERSECTION; // POR DEFECTO
+        }
+                
+        int numMinStudents_Section = (int) Math.round(maxStudentSection * 0.70);
+      //  int numMinStudents_Section = (int) Math.round(maxStudentSection * 0.8);
+        ArrayList<Seccion> secciones = new ArrayList<>();
+        ArrayList<Tupla<Integer, ArrayList<Integer>>> stids = new ArrayList<>();
+        ArrayList<Integer> idsAsignados = new ArrayList<>();
+        HashMap<Integer, Integer> hashStudents_cantPatrones = new HashMap<>();
+
+        initHashStudents(hashStudents_cantPatrones, studentsCourse);
+
+        //Crea una lista con conjuntos de estudiantes compatibles con cada seccion
+        //disponible del curso.
+        // aqui es donde se tendra que modificar por donde se comenzara a buscar las posiciones del patron
+        Boolean equilibrador = false;
+        
+        for (int i = 0; i < sec.size(); i++) {
+            stids.add(new Tupla(i, new ArrayList<>()));
+            for (Integer j : studentsCourse) {
+                if (students.get(j).patronCompatible(sec.get(i))) {
+                    stids.get(i).y.add(j);
+                    hashStudents_cantPatrones.put(j, hashStudents_cantPatrones.get(j) + 1);
+                    
+                }
+            }
+        }
         /*
         for (int i = 0; i < sec.size(); i++) {
             stids.add(new Tupla(i, new ArrayList<>()));
@@ -276,7 +437,9 @@ public class Algoritmo {
         } catch (Exception e) { // esto da errores aveces solucionar comparador
             //return null;
         }
+
         sortStidsByPriority(stids, sec, c, r);
+        sortStudentsByPatron(stids, hashStudents_cantPatrones);
 
         //inicializo el conjunto de estudiantes seleccionables
         ArrayList<Integer> diferencia;
@@ -332,7 +495,7 @@ public class Algoritmo {
                             studentsBySection++; // esto comprueba si no es multiplo es cuando debe incrementarse 1
                         }
 
-                        for (Integer j : diferencia) {
+                        for (Integer j : diferencia) { // studiantes
                             /*if (c.getPreferedBlocks() != null && c.getPreferedBlocks().size() > 0) {
                                     for (int h = 0; h < c.getPreferedBlocks().get(c.getSections() - 1).size(); h++) {
                                         ArrayList<Tupla> auxTupla = new ArrayList();
@@ -346,7 +509,7 @@ public class Algoritmo {
                                     }
                                 }*/
                             //    if ((k < studentsCourse.size() / c.getMinSections() + 1 || studentsCourse.size() == 1) && !idsAsignados.contains(j)
-                            if (((k < studentsBySection) || studentsCourse.size() == 1) && !idsAsignados.contains(j)
+                            if (((k <= numMinStudents_Section) || studentsCourse.size() == 1) && !idsAsignados.contains(j)
                                     && students.get(j).patronCompatible(sec.get(stids.get(i).x))) {
 
                                 idsAsignados.add(j);
@@ -355,11 +518,11 @@ public class Algoritmo {
                                 lastStudent = i;
                             }
                         }
-                        if (k < studentsBySection) { // si no  se llena la seccion
+                        if (k < numMinStudents_Section) { // si no  se llena la seccion
                             // se entra aqui para meter los alumnos que no cumplian las restricciones ?? -- no se si es necesario
                             for (Integer j : stids.get(i).y) {
                                 //     if ((k < studentsCourse.size() / c.getMinSections() + 1 || studentsCourse.size() == 1) && !idsAsignados.contains(j)
-                                if ((k < studentsBySection || studentsCourse.size() == 1) && !idsAsignados.contains(j)
+                                if ((k <= numMinStudents_Section || studentsCourse.size() == 1) && !idsAsignados.contains(j)
                                         && students.get(j).patronCompatible(sec.get(stids.get(i).x))) {
                                     idsAsignados.add(j);
                                     students.get(j).ocuparHueco(sec.get(stids.get(i).x), c.getIdCourse() * 100 + c.getSections());
@@ -371,14 +534,17 @@ public class Algoritmo {
                         //una vez que ya hay estudiantes asignados ha esta seccion ocupamos el hueco en el teacher
                         //y añadimos la seccion a la tabla del curso.
                         if (k > 0) { // se llena los huecos de ese profesor incluyendole la seccion
+
                             t.ocuparHueco(sec.get(stids.get(i).x), c.getIdCourse() * 100 + c.getSections());
                             t.incrementarNumSecciones();
+                            //    public Seccion(Teacher currentT,int numStudents,ArrayList<Tupla> patron){
+                            secciones.add(new Seccion(t, k, sec.get(stids.get(i).x)));
                             //**/ esto funcionaria para el balanceado
                             if (c.isBalanceTeachers()) {
-                             //   teachersOrderByPriority.remove(t);
-                                 ArrayList<Teacher> teachersOrderByPriorityAux = (ArrayList<Teacher>) teachersOrderByPriority.clone(); 
-                                 teachersOrderByPriorityAux.remove(t);
-                                 teachersOrderByPriority = teachersOrderByPriorityAux;
+                                //   teachersOrderByPriority.remove(t);
+                                ArrayList<Teacher> teachersOrderByPriorityAux = (ArrayList<Teacher>) teachersOrderByPriority.clone();
+                                teachersOrderByPriorityAux.remove(t);
+                                teachersOrderByPriority = teachersOrderByPriorityAux;
                             }
 
                             c.ocuparHueco(sec.get(stids.get(i).x));
@@ -405,8 +571,42 @@ public class Algoritmo {
             }
             i++;
         }
+              //  c.setStudentsAsignados(idsAsignados); // se actualiza la lista aunque no se usaron a todos los estudiantes
 
+        /*AQUI INTENTARE METER LOS ALUMNOS NO FUERON METIDOS EN NINGUNA SECCION 
+              SE METEN AQUI PARA INTENTAR EQUILIBRAR LAS SECCIONES*/
+
+        ArrayList<Integer> alumnosNoAsignados = conjuntos.diferencia(studentsCourse, idsAsignados);
+        ArrayList<Boolean> marcasAlumnos = new ArrayList<>();
+
+        for (int j = 0; j < alumnosNoAsignados.size(); j++) {
+            marcasAlumnos.add(false);
+        }
+
+        Collections.sort(secciones, new CompSeccionesStudents());
+
+        //     students_Section.add(-1);
+        /* for (int j = 0; j < students_Section.get(i).y; j++) {
+            alumnosNoAsignados.ge
+        }*/
+       
+     //   c.setStudentsAsignados(idsAsignados); // se actualiza la lista aunque no se usaron a todos los estudiantes
+
+        for (int j = 0; j < secciones.size(); j++) {
+            for (int k = 0; k < alumnosNoAsignados.size(); k++) {
+                if (!marcasAlumnos.get(k) && secciones.get(j).getNumStudents() <= maxStudentSection) {       
+                    if (students.get(alumnosNoAsignados.get(k)).patronCompatible(secciones.get(j).getPatronUsado())) {
+                        idsAsignados.add(alumnosNoAsignados.get(k));
+                        students.get(alumnosNoAsignados.get(k)).ocuparHueco(secciones.get(j).getPatronUsado(), c.getIdCourse() * 100 + (j+1));
+                        secciones.get(j).IncrNumStudents();
+                        marcasAlumnos.set(k,true);
+                    }       
+                }
+            }
+        }
+        
         c.setStudentsAsignados(idsAsignados); // se actualiza la lista aunque no se usaron a todos los estudiantes
+
         for (Integer st : idsAsignados) {
             students.get(st).addAsignado(c.getIdCourse());
         }
@@ -532,7 +732,7 @@ public class Algoritmo {
 
     private void backTrackingSchedule(ArrayList<Tupla<Integer, ArrayList<Integer>>> patronStudents, int k, ArrayList<Seccion> sol, ArrayList<Seccion> mejorSol, ArrayList<Teacher> arrayTeachers,
             int sectionsAsignadas, int numSeccionesMax, int maxStudentSeccion, int numAlumnos, int mejorNumAlumnos, int numStudentTotal, ArrayList<ArrayList<Boolean>> marcas) {
-
+        /*
         for (int i = 0; i < patronStudents.size(); i++) {
             for (int t = 0; t < arrayTeachers.size(); t++) {
                 if (esValido()) {
@@ -562,7 +762,7 @@ public class Algoritmo {
                     marcas.get(t).set(i, false);
                 }
             }
-        }
+        }*/
     }
 
     private void actualizarPatronStudents(ArrayList<Tupla<Integer, ArrayList<Integer>>> patronStudents, ArrayList<Integer> studentsAsignados) {

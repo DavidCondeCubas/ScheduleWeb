@@ -25,6 +25,15 @@ public class Student {
     private int numSection;
     private ArrayList<Integer> cursosNoAsignados;
     private ArrayList<Integer> cursosAsignados;
+    private int numPatrones;
+
+    public int getNumPatrones() {
+        return numPatrones;
+    }
+
+    public void setNumPatrones(int numPatrones) {
+        this.numPatrones = numPatrones;
+    }
 
     public void insertarOActualizarDB() {
         String consulta = "select * from students where id=" + id;
@@ -48,6 +57,11 @@ public class Student {
         } catch (Exception ex) {
             Logger.getLogger(Teacher.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public Student(int id, int numPatrones) {
+        this.id = id;
+        this.numPatrones = numPatrones;
     }
 
     public Student(int id) {
@@ -158,13 +172,13 @@ public class Student {
         return true;
     }
 
-       public boolean patronCompatible2(Tupla<Integer,Integer> ar) {
+    public boolean patronCompatible2(Tupla<Integer, Integer> ar) {
         if (ar == null) {
             return false;
         }
         return huecos[ar.x][ar.y] == 0;
     }
-       
+
     public void mostrarHuecos() {
         for (int i = 0; i < Algoritmo.TAMY; i++) {
             for (int j = 0; j < Algoritmo.TAMX; j++) {
@@ -183,13 +197,14 @@ public class Student {
         return ((Student) st).id == this.id;
     }
 
-   public int getNumSectionByCourse(int idCourse){
-       for (int i = 0; i < Algoritmo.TAMX; i++) {
-           for (int j = 0; j < Algoritmo.TAMY; j++) {
-               if((this.huecos[i][j] /100) == idCourse)
-                   return this.huecos[i][j]%100;
-           }
-       }
-       return -1;
-   }
+    public int getNumSectionByCourse(int idCourse) {
+        for (int i = 0; i < Algoritmo.TAMX; i++) {
+            for (int j = 0; j < Algoritmo.TAMY; j++) {
+                if ((this.huecos[i][j] / 100) == idCourse) {
+                    return this.huecos[i][j] % 100;
+                }
+            }
+        }
+        return -1;
+    }
 }

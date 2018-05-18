@@ -5,6 +5,7 @@
  */
 package model;
 
+import dataManage.Tupla;
 import java.util.ArrayList;
 
 /**
@@ -16,11 +17,12 @@ public class Seccion {
     ArrayList<Integer> idStudents;
     int idRoom;
     int numStudents;
+    ArrayList<Tupla> patronUsado;
     
-    public Seccion(ArrayList<Integer> arrT,Teacher currentT,int numStudents){
-        this.idStudents = arrT;
+    public Seccion(Teacher currentT,int numStudents,ArrayList<Tupla> patron){
         this.teacher = currentT;
         this.numStudents = numStudents;
+        this.patronUsado = patron;
     }
      public Seccion(){
         this.idStudents = new ArrayList<>();
@@ -48,6 +50,25 @@ public class Seccion {
 
     public void setIdRoom(int idRoom) {
         this.idRoom = idRoom;
+    }
+
+    public int getNumStudents() {
+        return numStudents;
+    }
+
+    public void setNumStudents(int numStudents) {
+        this.numStudents = numStudents;
+    }
+
+    public ArrayList<Tupla> getPatronUsado() {
+        return patronUsado;
+    }
+
+    public void setPatronUsado(ArrayList<Tupla> patronUsado) {
+        this.patronUsado = patronUsado;
+    }
+    public void IncrNumStudents(){
+        this.numStudents++;
     }
     
     
