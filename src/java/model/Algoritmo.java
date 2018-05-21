@@ -221,18 +221,31 @@ public class Algoritmo {
         }*/
 
         if (c.getPreferedBlocks() != null && c.getPreferedBlocks().size() > 0) {
+            ArrayList<Tupla<Integer, ArrayList<Integer>>> auxStids = new ArrayList<>();
+            ArrayList<Integer> auxRes = new ArrayList<>();
+            
             for (int i = 0; i < c.getPreferedBlocks().get(c.getSections() - 1).size(); i++) {
                 Tupla<Integer, ArrayList<Integer>> tuplaAux = new Tupla(stids.get(i).x, stids.get(i).y);
                 int res = buscarPosBlock((c.getPreferedBlocks().get(c.getSections() - 1).get(i).x) - 1, (c.getPreferedBlocks().get(c.getSections() - 1).get(i).y) - 1, stids, sec);
                 if (res != -1) {
-                    stids.set(i, stids.get(res));
-                    stids.set(res, tuplaAux);
+                   auxRes.add(res);
+                   auxStids.add(tuplaAux);
+                   /* stids.set(i, stids.get(res));
+                    stids.set(res, tuplaAux);*/
                     /*
                         ESTO MODIFICARA EL STIDS PONIENDO DELANTE LAS PRIORITARIAS
                      */
 
                 }
+                
             }
+            
+            for (int i = 0; i < stids.size(); i++) {
+                if(!auxRes.contains(i)){
+                    auxStids.add(stids.get(i));
+                }
+            }
+            stids = auxStids;
         }
     }
 
